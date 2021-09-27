@@ -48,6 +48,10 @@ module BankTools
         bank_data[:name]
       end
 
+      def type
+        bank_data[:type]
+      end
+
       def clearing_number
         [
           digits[0, 4],
