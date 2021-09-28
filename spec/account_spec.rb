@@ -20,52 +20,62 @@ describe BankTools::SE::Account do
       allow(account).to receive(:errors).and_return([ :error ])
       expect(account).not_to be_valid
     end
+
+    it "should be true with no errors when correct checksum" do
+      account = BankTools::SE::Account.new("8351-93922422245")
+      expect(account.errors).not_to include(BankTools::SE::Errors::BAD_CHECKSUM)
+    end
+
+    it "should be false with errors when incorrect checksum" do
+      account = BankTools::SE::Account.new("8351-93922422240")
+      expect(account.errors).to include(BankTools::SE::Errors::BAD_CHECKSUM)
+    end
   end
 
   describe "#errors" do
     [
-      "1100-0000000",       # Nordea.
-      "1200-0000000",       # Danske Bank.
-      "1400-0000000",       # Nordea.
-      "2300-0000000",       # Ålandsbanken.
-      "2400-0000000",       # Danske Bank.
-      "3000-0000000",       # Nordea.
-      "3300-800928-6249",   # Nordea personkonto.
-      "3301-0000000",       # Nordea.
-      "3400-0000000",       # Länsförsäkringar Bank.
-      "3410-0000000",       # Nordea.
-      "3782-800928-6249",   # Nordea personkonto.
-      "3783-0000000",       # Nordea.
-      "5000-0000000",       # SEB.
-      "6000-000000000",     # Handelsbanken.
-      "6000-00000000",      # Handelsbanken.
-      "7000-0000000",       # Swedbank.
-      "8000-2-0000000000",  # Swedbank/Sparbanker with clearing number checksum.
-      "9020-0000000",       # Länsförsäkringar Bank.
-      "9040-0000000",       # Citibank.
-      "9060-0000000",       # Länsförsäkringar Bank.
-      "9090-0000000",       # Royal Bank of Scotland.
-      "9100-0000000",       # Nordnet Bank.
-      "9120-0000000",       # SEB.
-      "9130-0000000",       # SEB.
-      "9150-0000000",       # Skandiabanken.
-      "9170-0000000",       # Ikano Bank.
-      "9180-0000000000",    # Danske Bank.
-      "9190-0000000",       # Den Norske Bank.
-      "9230-0000000",       # Marginalen.
-      "9250-0000000",       # SBAB.
-      "9260-0000000",       # Den Norske Bank.
-      "9270-0000000",       # ICA Banken.
-      "9280-0000000",       # Resurs Bank.
-      "9300-0000000000",    # Sparbanken Öresund.
-      "9400-0000000",       # Forex Bank.
-      "9460-0000000",       # GE Money Bank.
-      "9470-0000000",       # Fortis Bank.
+      "1100-0017728",       # Nordea.
+      "1200-0017729",       # Danske Bank.
+      "1400-0017720",       # Nordea.
+      "2300-0017727",       # Ålandsbanken.
+      "2400-0017720",       # Danske Bank.
+      "3000-0017727",       # Nordea.
+      "3300-8009286249",   # Nordea personkonto.
+      "3301-0017720",       # Nordea.
+      "3400-0017720",       # Länsförsäkringar Bank.
+      "3410-0017721",       # Nordea.
+      "3782-8009286249",   # Nordea personkonto.
+      "3783-0017723",       # Nordea.
+      "4164-0010720",       # Nordea.
+      "5000-0017727",       # SEB.
+      "6196-123456784",     # Handelsbanken.
+      "7000-0017727",       # Swedbank.
+      "8000-93922422245",  # Swedbank/Sparbanker with clearing number checksum.
+      "9020-0017727",       # Länsförsäkringar Bank.
+      "9040-0017727",       # Citibank.
+      "9060-0017722",       # Länsförsäkringar Bank.
+      "9090-0017727",       # Royal Bank of Scotland.
+      "9100-0017727",       # Nordnet Bank.
+      "9120-0017708",       # SEB.
+      "9130-0017720",       # SEB.
+      "9150-0017727",       # Skandiabanken.
+      "9170-0017724",       # Ikano Bank.
+      "9180-3922422245",    # Danske Bank.
+      "9190-0017727",       # Den Norske Bank.
+      "9230-0017721",       # Marginalen.
+      "9250-0017723",       # SBAB.
+      "9260-0017727",       # Den Norske Bank.
+      "9270-0017725",       # ICA Banken.
+      "9280-0017726",       # Resurs Bank.
+      "9300-3922422245",    # Sparbanken Öresund.
+      "9400-0017720",       # Forex Bank.
+      "9460-0017726",       # GE Money Bank.
+      "9470-0017727",       # Fortis Bank.
       "9500-00",            # Nordea/Plusgirot.
-      "9550-0000000",       # Avanza Bank.
-      "9570-0000000000",    # Sparbanken Syd.
+      "95583214820",       # Avanza Bank.
+      "9570-3922422245",    # Sparbanken Syd.
+      "9789-0017727",        # Klarna Bank.
       "9960-00",            # Nordea/Plusgirot.
-
     ].each do |number|
       it "should be empty for a valid number like #{number}" do
         expect(BankTools::SE::Account.new(number).errors).to eq([])
@@ -96,8 +106,8 @@ describe BankTools::SE::Account do
     end
 
     it "should include :bad_checksum for Nordea personkonto if the serial Luhn/mod 10 checksum is incorrect" do
-      expect(BankTools::SE::Utils.valid_luhn?("800928-6249")).to eq(true)
-      expect(BankTools::SE::Utils.valid_luhn?("3300-800928-6249")).to eq(false)
+      expect(BankTools::SE::Utils.valid_mod10?("800928-6249")).to eq(true)
+      expect(BankTools::SE::Utils.valid_mod10?("3300-800928-6249")).to eq(false)
       expect(BankTools::SE::Account.new("3300-800928-6249").errors).not_to include(BankTools::SE::Errors::BAD_CHECKSUM)
     end
 
@@ -147,7 +157,7 @@ describe BankTools::SE::Account do
 
   describe "#normalize" do
     it "should normalize to clearing number dash serial number" do
-      account = expect(BankTools::SE::Account.new("11000000007").normalize).to eq("1100-0000007")
+      account = expect(BankTools::SE::Account.new("37828009286249").normalize).to eq("3782-8009286249")
     end
 
     it "should keep any Swedbank/Sparbanker clearing checksum" do

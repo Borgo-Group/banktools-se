@@ -26,7 +26,7 @@ module BankTools
         # Adding 2: 1 length digit, 1 check digit.
         number += ((number.length + 2) % 10).to_s if add_length_digit
 
-        number_with_ocr = number + Utils.luhn_checksum(number).to_s
+        number_with_ocr = number + Utils.mod10_checksum(number).to_s
 
         length = number_with_ocr.length
         if length > MAX_LENGTH
@@ -42,7 +42,7 @@ module BankTools
         strip_padding = pad.to_s
 
         raise MustBeNumeric unless ocr.match(/\A\d+\z/)
-        raise BadChecksum unless Utils.valid_luhn?(ocr)
+        raise BadChecksum unless Utils.valid_mod10?(ocr)
         raise TooShortOCR if ocr.length < MIN_LENGTH
 
         if should_have_length_digit

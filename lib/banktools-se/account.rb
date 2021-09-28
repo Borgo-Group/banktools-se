@@ -27,8 +27,12 @@ module BankTools
         errors << Errors::TOO_LONG if serial_number.length > max_length
         errors << Errors::INVALID_CHARACTERS if number.to_s.match(/[^\d -]/)
 
-        if luhn_for_serial?
-          errors << Errors::BAD_CHECKSUM unless Utils.valid_luhn?(serial_number)
+        if mod10_for_serial?
+          errors << Errors::BAD_CHECKSUM unless Utils.valid_mod10?(serial_number)
+        end
+
+        if mod11_for_serial?
+          errors << Errors::BAD_CHECKSUM unless validate_mod11
         end
 
         errors << Errors::UNKNOWN_CLEARING_NUMBER unless bank
@@ -102,8 +106,12 @@ module BankTools
         bank_data.fetch(:serial_number_length, DEFAULT_SERIAL_NUMBER_LENGTH)
       end
 
-      def luhn_for_serial?
-        bank_data[:luhn_for_serial]
+      def mod10_for_serial?
+        bank_data[:mod10_for_serial]
+      end
+
+      def mod11_for_serial?
+        bank_data[:mod11_for_serial]
       end
 
       def checksum_for_clearing?
@@ -116,6 +124,27 @@ module BankTools
 
       def zerofill?
         !!bank_data[:zerofill]
+      end
+
+      def validate_mod11
+        number = digits.gsub(clearing_number.gsub("-", ""), "").scan(/\d/)
+        check_digit = number.pop
+
+        number = number.join("").to_s
+
+        resp = if bank_data[:mod11_for_serial][:type] == 1 && bank_data[:mod11_for_serial][:comment] == 1
+                 Utils.mod11_checksum(
+                   [ clearing_number.split("").last(3), number.rjust(serial_number_length, "0") ].join(""),
+                 )
+              elsif bank_data[:mod11_for_serial][:type] == 1 && bank_data[:mod11_for_serial][:comment] == 2
+                Utils.mod11_checksum(number.rjust(serial_number_length, "0"))
+              elsif bank_data[:mod11_for_serial][:type] == 2 && bank_data[:mod11_for_serial][:comment] == 2
+                Utils.mod11_checksum(number.rjust(9, "0"))
+              else
+                Utils.mod10_checksum(number.rjust(10, "0"))
+              end
+
+        check_digit.to_i === resp.to_i
       end
     end
   end
