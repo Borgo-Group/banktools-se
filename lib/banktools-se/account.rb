@@ -2,7 +2,7 @@
 
 # https://www.bankgirot.se/globalassets/dokument/anvandarmanualer/bankernaskontonummeruppbyggnad_anvandarmanual_sv.pdf
 
-require "banktools-se/account/clearing_number"
+require_relative "account/clearing_number"
 
 module BankTools
   module SE
@@ -127,24 +127,17 @@ module BankTools
       end
 
       def validate_mod11
-        number = digits.gsub(clearing_number.gsub("-", ""), "").scan(/\d/)
-        check_digit = number.pop
-
-        number = number.join("").to_s
-
-        resp = if bank_data[:mod11_for_serial][:type] == 1 && bank_data[:mod11_for_serial][:comment] == 1
-                 Utils.mod11_checksum(
-                   [ clearing_number.split("").last(3), number.rjust(serial_number_length, "0") ].join(""),
-                 )
+        mod_type, acc_num = if bank_data[:mod11_for_serial][:type] == 1 && bank_data[:mod11_for_serial][:comment] == 1
+                              [ :mod11, "#{clearing_number[1..3]}#{serial_number.rjust(7, '0')[-7..-1]}" ]
               elsif bank_data[:mod11_for_serial][:type] == 1 && bank_data[:mod11_for_serial][:comment] == 2
-                Utils.mod11_checksum(number.rjust(serial_number_length, "0"))
+                [ :mod11, "#{clearing_number}#{serial_number.rjust(7, '0')[-7..-1]}" ]
               elsif bank_data[:mod11_for_serial][:type] == 2 && bank_data[:mod11_for_serial][:comment] == 2
-                Utils.mod11_checksum(number.rjust(9, "0"))
+                [ :mod11, serial_number.rjust(9, "0") ]
               else
-                Utils.mod10_checksum(number.rjust(10, "0"))
+                [ :mod10, serial_number.rjust(10, "0") ]
               end
 
-        check_digit.to_i === resp.to_i
+        Utils.send("valid_#{mod_type}?", acc_num)
       end
     end
   end

@@ -1,9 +1,6 @@
 module BankTools
   module SE
     module Utils
-      MOD11_WEIGHTS = [ 1, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 ]
-
-
       # Based on http://blog.internautdesign.com/2007/4/18/ruby-luhn-check-aka-mod-10-formula
       def self.valid_mod10?(number)
         digits = number.to_s.scan(/\d/).reverse.map { |x| x.to_i }
@@ -26,33 +23,19 @@ module BankTools
         mod == 10 ? 0 : mod
       end
 
-      # Based on/copied from https://github.com/badmanski/mod11
+      # Based on/copied from https://github.com/tilljoel/bgc-account
 
       def self.valid_mod11?(number)
+        return false unless number
 
-        digits = number.to_s.scan(/\d/).reverse.map { |x| x.to_i }
-        digits = digits.each_with_index do |char, i|
-          char.to_i * MOD11_WEIGHTS[i]
+        weights_array = [ 1, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 ]
+        digits = number.scan(/./).map(&:to_i)
+        weights = weights_array[-digits.length..-1]
+        weighted_array = weights.zip(digits).map do |weight, val|
+          weight * val
         end
-
-        sum = digits.inject(0) { |m, x| m + x }
-        sum % 11 == 0
-      end
-
-      def self.mod11_checksum(number)
-        digits = number.to_s.scan(/\d/).reverse.map { |x| x.to_i }
-        digits = digits.each_with_index do |char, i|
-          char.to_i * MOD11_WEIGHTS[i]
-        end
-
-        sum = digits.inject(0) { |m, x| m + x }
-        remainder = 10 - sum % 11
-
-        case remainder
-        when 0 then remainder
-        when 1 then nil
-        else 11 - remainder
-        end
+        rest = weighted_array.reduce(0) { |a, e| a + e } % 11
+        rest == 0
       end
     end
   end
