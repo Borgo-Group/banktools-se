@@ -42,7 +42,7 @@ module BankTools
           9300..9349 => { name: "Swedbank (fd. Sparbanken Öresund)", type: :bank, serial_number_length: 10, mod11_for_serial: { type: 2, comment: 1 } },
           9390..9399 => { name: "Landshypotek", type: :credit, serial_number_length: 10, mod11_for_serial: { type: 1, comment: 2 } },
           9400..9449 => { name: "Forex Bank", type: :savings, mod11_for_serial: { type: 1, comment: 1 } },
-          9460..9469 => { name: "SantanderConsumer Bank AS", type: :bank, mod11_for_serial: { type: 1, comment: 1 } },
+          9460..9469 => { name: "SantanderConsumer Bank AS", type: :savings, mod11_for_serial: { type: 1, comment: 1 } },
           9470..9479 => { name: "BNP Paribas", type: :bank, mod11_for_serial: { type: 1, comment: 2 } },
           9500..9549 => { name: "Nordea/Plusgirot", type: :payment, serial_number_length: 1..10, mod11_for_serial: { type: 2, comment: 3 } },
           9550..9569 => { name: "Avanza Bank", type: :savings, mod11_for_serial: { type: 1, comment: 2 } },
